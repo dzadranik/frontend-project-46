@@ -19,6 +19,7 @@
   "dependencies": {
     "commander": "^12.0.0"
   },
+  "type": "module",
   "bin": {
     "gendiff": "bin/gendiff.js"
   }
