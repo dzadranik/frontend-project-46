@@ -2,19 +2,23 @@
 
 // import path from "path";
 import fs from "fs";
-import gendiff from "../src/gendiff.js";
+import jsonParser from "../src/parsers/json-parser.js";
+import yamlParser from "../src/parsers/yaml-parser.js";
 import { program } from "commander";
 
 const command = (path1, path2) => {
-  const allowedFiles = ["json", "yml", "yaml"];
-  let fileType = path1.split(".");
-  fileType = fileType[fileType.length - 1];
+  const fileParsers = {
+    json: jsonParser,
+    yml: yamlParser,
+    yaml: yamlParser,
+  };
+  let fileType = path1.slice(path1.lastIndexOf('.') + 1);
 
-  if (allowedFiles.includes(fileType)) {
-    fileType = fileType === "yml" ? "yaml" : fileType;
-    console.log(
-      gendiff(fileType, fs.readFileSync(path1), fs.readFileSync(path2))
-    );
+  if (fileParsers[fileType]) {
+    const conf1 = fs.readFileSync(path1);
+    const conf2 = fs.readFileSync(path2);
+
+    console.log(fileParsers[fileType](conf1, conf2));
   } else {
     console.log("Error file type");
   }

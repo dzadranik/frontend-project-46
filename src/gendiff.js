@@ -1,43 +1,34 @@
-import yaml from "js-yaml";
+import _ from "lodash";
 
-const gendiff = (format, conf1, conf2) => {
-  let config1 = null;
-  let config2 = null;
-  if (format === "json") {
-    config1 = JSON.parse(conf1);
-    config2 = JSON.parse(conf2);
-  } else if (format === "yaml") {
-    config1 = yaml.load(conf1);
-    config2 = yaml.load(conf2);
-  }
-
-  if (conf1 && conf2) {
-    const keys1 = Object.keys(config1).sort();
-    const keys2 = Object.keys(config2).sort();
-    const diff = ["{"];
-    for (const key of keys1) {
-      if (keys2.includes(key)) {
-        if (config1[key] === config2[key]) {
-          diff.push(`    ${key}: ${config1[key]}`);
-        } else {
-          diff.push(`  - ${key}: ${config1[key]}`);
-          diff.push(`  + ${key}: ${config2[key]}`);
-        }
+const getDiff = (obj1, obj2, res, prefix) => {
+  const keys = Array.from(new Set(Object.keys(obj1), Object.keys(obj2))).sort();
+  for (const key of keys) {
+    if (_.isPlainObject(obj1[key]) && _.isPlainObject(obj2[key])) {
+      res.push(`${prefix}  ${key}: {`);
+      res = getDiff(obj1[key], obj2[key], res, `    ${prefix}`);
+      res.push(`${prefix}  }`);
+    } else if (obj1[key] && obj2[key]) {
+      if (obj1[key] === obj2[key]) {
+        res.push(`${prefix}  ${key}: ${obj1[key]}`);
       } else {
-        diff.push(`  - ${key}: ${config1[key]}`);
+        res.push(`${prefix}- ${key}: ${obj1[key]}`);
+        res.push(`${prefix}+ ${key}: ${obj2[key]}`);
       }
+    } else if (obj1[key]) {
+      res.push(`${prefix}- ${key}: ${obj1[key]}`);
+    } else {
+      res.push(`${prefix}+ ${key}: ${obj1[key]}`);
     }
-    keys2
-      .filter(key => !keys1.includes(key))
-      .forEach(key => {
-        diff.push(`  + ${key}: ${config2[key]}`);
-      });
-    diff.push("}");
-
-    return diff.join("\n");
   }
+  // res.push("}");
+  return res;
+};
 
-  return null;
+const gendiff = ({ conf1, conf2 }) => {
+  const diff = getDiff(conf1, conf2, ["{"], "  ");
+  diff.push("}");
+
+  return diff.join("\n");
 };
 
 export default gendiff;
