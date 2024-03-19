@@ -1,6 +1,15 @@
-const gendiff = (conf1, conf2) => {
-  const config1 = JSON.parse(conf1);
-  const config2 = JSON.parse(conf2);
+import yaml from "js-yaml";
+
+const gendiff = (format, conf1, conf2) => {
+  let config1 = null;
+  let config2 = null;
+  if (format === "json") {
+    config1 = JSON.parse(conf1);
+    config2 = JSON.parse(conf2);
+  } else if (format === "yaml") {
+    config1 = yaml.load(conf1);
+    config2 = yaml.load(conf2);
+  }
 
   const keys1 = Object.keys(config1).sort();
   const keys2 = Object.keys(config2).sort();
